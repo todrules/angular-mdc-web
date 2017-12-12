@@ -23,6 +23,7 @@
     "test": "npm run test:unit",
     "test:unit": "karma start --single-run",
     "test:watch": "karma start --auto-watch",
+    "build:demo": "webpack --config config/webpack/webpack.aot.js",
     "server": "webpack-dev-server --config config/webpack/webpack.dev.js",
     "start": "npm run server"
   },
@@ -51,6 +52,7 @@
     "@angular/upgrade": "^5.0.5",
     "@babel/core": "^7.0.0-beta.34",
     "@babel/preset-env": "^7.0.0-beta.34",
+    "@ngtools/webpack": "^1.9.0",
     "@types/fs-extra": "^4.0.5",
     "@types/glob": "^5.0.33",
     "@types/gulp": "^4.0.5",

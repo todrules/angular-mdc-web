@@ -1,30 +1,37 @@
 {
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "target": "es5",
     "module": "es2015",
     "moduleResolution": "node",
-    "lib": ["es2015", "dom"],
+    "lib": ["es6", "es2015", "dom"],
+    "skipLibCheck": true,
     "declaration": false,
     "sourceMap": true,
     "noImplicitAny": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": "../../publish-demo",
-    "typeRoots": ["../../node_modules/@types"]
+    "outDir": "../../dist/demo-app",
+    "typeRoots": ["../../node_modules/@types"],
+    "rootDirs": [
+      ".",
+      "../../dist/demo-app"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@angular-mdc/web/*": ["../../dist/releases/mdc/*"],
+      "@angular-mdc/web": ["../../dist/releases/mdc"]
+    }
   },
   "files": [
     "./app.module.ts",
-    "./main-aot.ts",
-    "../lib/typings.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "polyfills.ts"
+    "./main.ts",
+    "./polyfills.ts",
+    "./vendor.ts"
   ],
   "angularCompilerOptions": {
     "skipTemplateCodegen": false,
-    "skipMetadataEmit": true
+    "entryModule": "./app.module#AppModule"
   }
 }
