@@ -41,7 +41,7 @@ module.exports = [{
   resolve: {
     plugins: [
       new TsConfigPathsPlugin({
-        configFileName: './src/demo-app/tsconfig.json',
+        configFileName: './src/demo-app/tsconfig-aot.json',
         compiler: 'typescript'
       })
     ],
