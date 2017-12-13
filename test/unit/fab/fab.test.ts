@@ -70,11 +70,6 @@ describe('MdcFab', () => {
       expect(testComponent.clickCount).toBe(1);
     });
 
-    it('#should handle a blur event', () => {
-      buttonInstance.blur(null);
-      fixture.detectChanges();
-    });
-
     it('#should preserve any given tabIndex', () => {
       expect(buttonDebugElement.nativeElement.tabIndex).toBe(2);
     });
@@ -102,6 +97,22 @@ describe('MdcFab', () => {
       testComponent.myPosition = '';
       fixture.detectChanges();
       expect(buttonDebugElement.nativeElement.classList.contains('mdc-fab--bottom-right')).toBe(false);
+    });
+
+    it('#should focus on button when focus() is called', () => {
+      buttonInstance.focus();
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(buttonNativeElement);
+    });
+
+    it('#should handle a click on the button', () => {
+      let fixture = TestBed.createComponent(SimpleButton);
+      let testComponent = fixture.debugElement.componentInstance;
+      let buttonDebugElement = fixture.debugElement.query(By.css('button'));
+
+      buttonDebugElement.nativeElement.click();
+      expect(testComponent.clickCount).toBe(1);
     });
   });
 });
