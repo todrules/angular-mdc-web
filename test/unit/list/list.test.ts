@@ -5,7 +5,6 @@ import {
   MdcList,
   MdcListItem,
   MdcListGroup,
-  MdcListItemStart,
   MdcListDivider,
   MdcListModule,
   MdcIconModule,
@@ -66,26 +65,37 @@ describe('MdcListModule', () => {
       expect(testDebugElement.nativeElement.classList.contains('mdc-list--avatar-list')).toBe(true);
     });
 
-    it('#should apply disableRipples', () => {
-      testComponent.isRippleDisabled = false;
-      fixture.detectChanges();
-      expect(testInstance.disableRipple).toBe(false);
-      expect(testInstance.isRippleDisabled()).toBe(false);
-    });
-
     it('#should have mdc-list-divider--inset class', () => {
       testComponent.isInset = true;
       fixture.detectChanges();
-      expect(testComponent.dividier.inset).toBe(true);
+      expect(testComponent.divider.inset).toBe(true);
     });
 
-    it('#should not be active', () => {
-      testComponent.isItemActive = false;
+    it('#should not be selected', () => {
+      testComponent.isItemSelected = false;
       fixture.detectChanges();
-      expect(testComponent.listitem.active).toBe(false);
-      expect(testComponent.listitem.isActive()).toBe(false);
-      expect(testComponent.listitem.select());
-      expect(testComponent.listitem.hasClass('testing')).toBe(false);
+      expect(testComponent.listitem.selected).toBe(false);
+    });
+
+    it('#should be selected', () => {
+      testComponent.listitem._getHostElement().click();
+      fixture.detectChanges();
+      expect(testComponent.listitem.selected).toBe(true);
+    });
+
+    it('#should be selected', () => {
+      testComponent.isItemSelected = false;
+      fixture.detectChanges();
+
+      testComponent.listitem.toggle();
+      fixture.detectChanges();
+      expect(testComponent.listitem.selected).toBe(true);
+    });
+
+    it('#should have divider padding', () => {
+      testComponent.isPadded = true;
+      fixture.detectChanges();
+      expect(testComponent.divider.padded).toBe(true);
     });
   });
 });
@@ -95,11 +105,11 @@ describe('MdcListModule', () => {
     <mdc-list-group #group>
       <mdc-list-group-subheader>Grouped Lists</mdc-list-group-subheader>
       <mdc-list [dense]="isDense" [border]="isBordered" [twoLine]="isTwoline"
-       [avatar]="isAvatar" [disableRipple]="isRippleDisabled">
-        <mdc-list-item #listitem mdc-list-item-start [active]="isItemActive">Test
-          <mdc-icon mdc-list-item-end>home</mdc-icon>
+       [avatar]="isAvatar" [interactive]="isInteractive">
+        <mdc-list-item #listitem mdc-list-item-graphic [selected]="isItemSelected">Test
+          <mdc-icon mdc-list-item-meta>home</mdc-icon>
         </mdc-list-item>
-        <mdc-list-divider #divider [inset]="isInset"></mdc-list-divider>
+        <mdc-list-divider #divider [padded]="isPadded" [inset]="isInset"></mdc-list-divider>
         <mdc-list-item>
           <mdc-list-item-text>
           Single-line item
@@ -115,11 +125,12 @@ class SimpleList {
   isBordered: boolean = false;
   isTwoline: boolean = false;
   isAvatar: boolean = false;
-  isRippleDisabled: boolean = true;
-  isItemActive: boolean = true;
+  isInteractive: boolean = true;
+  isItemSelected: boolean = true;
   isInset: boolean = false;
+  isPadded: boolean = false;
 
-  @ViewChild('divider') dividier: MdcListDivider;
+  @ViewChild('divider') divider: MdcListDivider;
   @ViewChild('listitem') listitem: MdcListItem;
   @ViewChild('group') group: MdcListGroup;
 }

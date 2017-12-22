@@ -73,6 +73,18 @@ describe('MdcMenu', () => {
       expect(testDebugElement.nativeElement.classList).toContain('mdc-simple-menu--open-from-top-left');
     });
 
+    it('#should be open from top right', () => {
+      testComponent.myOpenFrom = 'topRight';
+      fixture.detectChanges();
+      expect(testDebugElement.nativeElement.classList).toContain('mdc-simple-menu--open-from-top-right');
+    });
+
+    it('#should be open from bottom left', () => {
+      testComponent.myOpenFrom = 'bottomLeft';
+      fixture.detectChanges();
+      expect(testDebugElement.nativeElement.classList).toContain('mdc-simple-menu--open-from-bottom-left');
+    });
+
     it('#should have focus', () => {
       expect(document.activeElement).not.toBe(testDebugElement.nativeElement);
 
@@ -96,13 +108,16 @@ describe('MdcMenu', () => {
     it('#menu should have direction', () => {
       expect(testInstance.isRtl()).toBe(false);
     });
+
+    it('#should handle click event', () => {
+      testDebugElement.nativeElement.click();
+      fixture.detectChanges();
+    });
   });
 });
 
-/** Simple component for testing. */
 @Component({
-  template:
-  `
+  template: `
     <div mdc-menu-anchor>
       <mdc-menu [openFrom]="myOpenFrom" (select)="handleSelect($event)"
       (cancel)="handleCancel($event)" direction='ltr'>

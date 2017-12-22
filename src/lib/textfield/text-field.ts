@@ -131,16 +131,6 @@ export class MdcTextField implements AfterViewInit, OnDestroy, ControlValueAcces
 
       this._registry.unlisten(evtType, handler);
     },
-    getBottomLineFoundation: () => {
-      if (this.bottomLine) {
-        return this.bottomLine.foundation;
-      }
-    },
-    getHelperTextFoundation: () => {
-      if (this.helperText) {
-        return this.helperText.foundation;
-      }
-    },
     getNativeInput: () => {
       return {
         checkValidity: () => this.inputText.nativeElement.validity.valid,
@@ -151,6 +141,14 @@ export class MdcTextField implements AfterViewInit, OnDestroy, ControlValueAcces
     }
   };
 
+  /** Returns a map of all subcomponents to subfoundations. */
+  private getFoundationMap_() {
+    return {
+      bottomLine: this.bottomLine ? this.bottomLine.foundation : undefined,
+      helperText: this.helperText ? this.helperText.foundation : undefined,
+    };
+  }
+
   private _foundation: {
     init: Function,
     destroy: Function,
@@ -160,7 +158,7 @@ export class MdcTextField implements AfterViewInit, OnDestroy, ControlValueAcces
     activateFocus: Function,
     deactivateFocus: Function,
     setHelperTextContent: Function,
-  } = new MDCTextFieldFoundation(this._mdcAdapter);
+  };
 
   @Input() id: string = `mdc-input-${nextUniqueId++}`;
   @Input() fullwidth: boolean = false;
@@ -191,9 +189,9 @@ export class MdcTextField implements AfterViewInit, OnDestroy, ControlValueAcces
   @Input()
   get disabled(): boolean { return this._disabled; }
   set disabled(value: boolean) {
-    this._disabled = value != null && `${value}` !== 'false';
     if (value !== this._disabled) {
       this._foundation.setDisabled(value);
+      this._disabled = value;
     }
   }
   @Input()
@@ -245,6 +243,9 @@ export class MdcTextField implements AfterViewInit, OnDestroy, ControlValueAcces
     private _registry: EventRegistry) { }
 
   ngAfterViewInit(): void {
+    this._foundation
+      = new MDCTextFieldFoundation(this._mdcAdapter, this.getFoundationMap_());
+
     this._foundation.init();
     this._changeDetectorRef.detectChanges();
   }

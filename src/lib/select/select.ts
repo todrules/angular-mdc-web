@@ -14,11 +14,9 @@ import {
   Input,
   NgZone,
   OnDestroy,
-  Optional,
   Output,
   QueryList,
   Renderer2,
-  Self,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
@@ -48,6 +46,7 @@ import {
   toBoolean,
 } from '@angular-mdc/web/common';
 import { MDCSimpleMenu } from '@material/menu/simple';
+import { MdcRipple } from '@angular-mdc/web/ripple';
 
 import { MDCSelectAdapter } from './adapter';
 import { MDCSelectFoundation } from '@material/select';
@@ -69,7 +68,7 @@ let uniqueIdCounter = 0;
   selector: 'mdc-select-label'
 })
 export class MdcSelectLabel {
-  @HostBinding('class.mdc-select__selected-text') isHostClass = true;
+  @HostBinding('class.mdc-select__label') isHostClass = true;
 
   constructor(public elementRef: ElementRef) { }
 }
@@ -90,6 +89,44 @@ export class MdcSelectMenu {
 export class MdcSelectItems {
   @HostBinding('class.mdc-list') isHostClass = true;
   @HostBinding('class.mdc-simple-menu__items') isSelectClass = true;
+
+  constructor(public elementRef: ElementRef) { }
+}
+
+@Directive({
+  selector: 'mdc-select-surface',
+  providers: [
+    MdcRipple
+  ]
+})
+export class MdcSelectSurface {
+  @HostBinding('class.mdc-select__surface') isHostClass = true;
+
+  public getHostElement(): any {
+    return this._elementRef.nativeElement;
+  }
+
+  constructor(
+    private _elementRef: ElementRef,
+    private _ripple: MdcRipple) {
+    this._ripple.init();
+  }
+}
+
+@Directive({
+  selector: 'mdc-select-selected-text'
+})
+export class MdcSelectSelectedText {
+  @HostBinding('class.mdc-select__selected-text') isHostClass = true;
+
+  constructor(public elementRef: ElementRef) { }
+}
+
+@Directive({
+  selector: 'mdc-select-bottom-line'
+})
+export class MdcSelectBottomLine {
+  @HostBinding('class.mdc-select__bottom-line') isHostClass = true;
 
   constructor(public elementRef: ElementRef) { }
 }
@@ -131,7 +168,8 @@ export class MdcSelectItem {
   get disabled(): boolean { return this._disabled; }
   set disabled(value: boolean) {
     this._disabled = toBoolean(value);
-    value ? this.tabIndex = -1 : this.tabIndex = 0;
+    this.tabIndex = value ? -1 : 0;
+    this._changeDetectorRef.markForCheck();
   }
 
   /** Event emitted when the option is selected or deselected. */
@@ -139,6 +177,9 @@ export class MdcSelectItem {
 
   @HostBinding('class.mdc-list-item') isHostClass = true;
   @HostBinding('tabindex') tabIndex: number = 0;
+  @HostBinding('attr.aria-disabled') get ariaDisabled(): string {
+    return this._disabled ? 'true' : '';
+  }
   @HostListener('keydown', ['$event']) keydown($event) {
     this._onKeydown($event);
   }
@@ -179,7 +220,7 @@ export class MdcSelectItem {
   }
 
   /** Returns the correct tabindex for the option depending on disabled state. */
-  _getTabIndex(): string {
+  private _getTabIndex(): string {
     return this.disabled ? '-1' : '0';
   }
 
@@ -206,7 +247,11 @@ export class MdcSelectItem {
     '[id]': 'id',
   },
   template: `
-  <mdc-select-label>{{label ? label : placeholder}}</mdc-select-label>
+  <mdc-select-surface>
+    <mdc-select-label>{{placeholder}}</mdc-select-label>
+    <mdc-select-selected-text>{{label}}</mdc-select-selected-text>
+    <mdc-select-bottom-line></mdc-select-bottom-line>
+  </mdc-select-surface>
   <mdc-select-menu>
     <mdc-select-items>
       <ng-content></ng-content>
@@ -228,6 +273,21 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
     removeClass: (className: string) => {
       this._renderer.removeClass(this.elementRef.nativeElement, className);
     },
+    addClassToLabel: (className: string) => {
+      this._renderer.addClass(this.selectLabel.elementRef.nativeElement, className);
+    },
+    removeClassFromLabel: (className: string) => {
+      this._renderer.removeClass(this.selectLabel.elementRef.nativeElement, className);
+    },
+    addClassToBottomLine: (className: string) => {
+      this._renderer.addClass(this.bottomLine.elementRef.nativeElement, className);
+    },
+    removeClassFromBottomLine: (className: string) => {
+      this._renderer.removeClass(this.bottomLine.elementRef.nativeElement, className);
+    },
+    setBottomLineAttr: (attr: string, value: string) => {
+      this._renderer.setAttribute(this.bottomLine.elementRef.nativeElement, attr, value);
+    },
     setAttr: (attr: string, value: string) => {
       this._renderer.setAttribute(this.elementRef.nativeElement, attr, value);
     },
@@ -247,14 +307,12 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
     makeTabbable: () => this.elementRef.nativeElement.tabIndex = 0,
     makeUntabbable: () => this.elementRef.nativeElement.tabIndex = -1,
     getComputedStyleValue: (propertyName: string) => {
-      return isBrowser() ? window.getComputedStyle(this.elementRef.nativeElement).getPropertyValue(propertyName) : '';
+      return isBrowser() ? window.getComputedStyle(this.surface.getHostElement()).getPropertyValue(propertyName) : '';
     },
     setStyle: (propertyName: string, value: string) => {
-      this._renderer.setProperty(this.elementRef.nativeElement, propertyName, value);
+      this._renderer.setProperty(this.surface.getHostElement(), propertyName, value);
     },
-    create2dRenderingContext: () => {
-      return this._renderer.createElement('canvas').getContext('2d');
-    },
+    create2dRenderingContext: () => document.createElement('canvas').getContext('2d'),
     setMenuElStyle: (propertyName: string, value: string) => {
       this._renderer.setStyle(this.selectMenu.elementRef.nativeElement, propertyName, value);
     },
@@ -268,7 +326,7 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
       return this.selectMenu.elementRef.nativeElement.offsetHeight;
     },
     openMenu: (focusIndex: number) => {
-      this._menuFactory.show(focusIndex);
+      this._menuFactory.show({ focusIndex });
     },
     isMenuOpen: () => this._menuFactory.open,
     setSelectedTextContent: (textContent: string) => {
@@ -336,6 +394,9 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
   } = new MDCSelectFoundation(this._mdcAdapter);
 
   private _uniqueId: string = `mdc-select-${++nextUniqueId}`;
+  @ViewChild(MdcSelectSurface) surface: MdcSelectSurface;
+  @ViewChild(MdcSelectLabel) selectLabel: MdcSelectLabel;
+  @ViewChild(MdcSelectBottomLine) bottomLine: MdcSelectBottomLine;
   @ViewChild(MdcSelectMenu) selectMenu: MdcSelectMenu;
   @ViewChild(MdcSelectItems) selectItems: MdcSelectItems;
   @ContentChildren(MdcSelectItem, { descendants: true }) options: QueryList<MdcSelectItem>;
@@ -350,6 +411,7 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
   private _placeholder: string;
   private _menuFactory: any;
   private _value: any;
+  private _autosize: boolean = true;
 
   @Input() id: string = this._uniqueId;
   @Input() name: string | null = null;
@@ -396,6 +458,12 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
     this.setDisabled(value);
   }
 
+  @Input()
+  get autosize(): boolean { return this._autosize; }
+  set autosize(value: boolean) {
+    this._autosize = value;
+  }
+
   /** Combined stream of all of the child options' change events. */
   optionSelectionChanges: Observable<MdcSelectedItem> = defer(() => {
     if (this.options) {
@@ -426,6 +494,10 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
   ngAfterViewInit(): void {
     this._menuFactory = new MDCSimpleMenu(this.selectMenu.elementRef.nativeElement);
     this._foundation.init();
+
+    if (this.autosize) {
+      this._setWidth();
+    }
   }
 
   ngAfterContentInit() {
@@ -476,22 +548,19 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
     });
   }
 
-  /** Invoked when an option is clicked. */
-  private _onSelect(option: MdcSelectItem): void {
-    this._clearSelection(option.value == null ? undefined : option);
-
-
-    this._propagateChanges(option.value);
-  }
-
   private _propagateChanges(newValue: any): void {
     if (this.disabled || !this.options) {
       return;
     }
-
     this._value = newValue;
     this._foundation.setSelectedIndex(this.options.toArray().findIndex(_ => _.value === newValue));
     this._ngControl.valueAccessor.writeValue(newValue);
+
+    if (this._foundation.getSelectedIndex() === -1) {
+      this._mdcAdapter.removeClassFromLabel('mdc-select__label--float-above');
+    } else {
+      this._mdcAdapter.addClassToLabel('mdc-select__label--float-above');
+    }
 
     this._changeDetectorRef.markForCheck();
     this._mdcAdapter.notifyChange();
@@ -619,5 +688,14 @@ export class MdcSelect implements AfterViewInit, AfterContentInit, ControlValueA
 
   private _getItemByIndex(index: number): MdcSelectItem | null {
     return this.options ? this.options.toArray()[index] : null;
+  }
+
+  private _setWidth() {
+    if (this.options) {
+      const longest = this.options.toArray().map(item =>
+        item.elementRef.nativeElement.textContent).reduce((p, x) => p.length > x.length ? p.length : x.length, 5);
+      this._renderer.setStyle(this.elementRef.nativeElement, 'width', `${longest}rem`);
+      this._mdcAdapter.setMenuElStyle('width', `${longest}rem`);
+    }
   }
 }

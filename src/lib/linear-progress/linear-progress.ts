@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostBinding,
@@ -14,8 +15,7 @@ import { MDCLinearProgressFoundation } from '@material/linear-progress';
 @Component({
   moduleId: module.id,
   selector: 'mdc-linear-progress',
-  template:
-  `
+  template: `
   <div class="mdc-linear-progress__buffering-dots"></div>
   <div class="mdc-linear-progress__buffer"></div>
   <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
@@ -25,7 +25,9 @@ import { MDCLinearProgressFoundation } from '@material/linear-progress';
    <span class="mdc-linear-progress__bar-inner"></span>
   </div>
   `,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  preserveWhitespaces: false
 })
 export class MdcLinearProgress implements AfterViewInit {
   private _indeterminate: boolean = false;
@@ -44,10 +46,14 @@ export class MdcLinearProgress implements AfterViewInit {
     this._reversed = value;
   }
   @Input() secondary: boolean = false;
+  @Input() closed: boolean = false;
   @HostBinding('attr.role') role: string = 'progressbar';
   @HostBinding('class.mdc-linear-progress') isHostClass = true;
   @HostBinding('class.mdc-linear-progress--secondary') get classSecondary(): string {
     return this.secondary ? 'mdc-linear-progress--secondary' : '';
+  }
+  @HostBinding('class.mdc-linear-progress--closed') get classClosed(): string {
+    return this.closed ? 'mdc-linear-progress--closed' : '';
   }
 
   private _mdcAdapter: MDCLinearProgressAdapter = {
@@ -66,7 +72,7 @@ export class MdcLinearProgress implements AfterViewInit {
     removeClass: (className: string) => {
       this._renderer.removeClass(this.elementRef.nativeElement, className);
     },
-    setStyle: (el: Element, styleProperty: string, value: number) => {
+    setStyle: (el: Element, styleProperty: string, value: string) => {
       this._renderer.setStyle(el, styleProperty, value);
     }
   };
@@ -103,5 +109,15 @@ export class MdcLinearProgress implements AfterViewInit {
 
   setBuffer(value: number): void {
     this._foundation.setBuffer(value);
+  }
+
+  setReverse(value: boolean): void {
+    this._reversed = value;
+    this._foundation.setReverse(value);
+  }
+
+  setDeterminate(value: boolean): void {
+    this._indeterminate = !value;
+    this._foundation.setDeterminate(value);
   }
 }
