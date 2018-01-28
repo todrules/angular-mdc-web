@@ -5,6 +5,7 @@ import {
   EventEmitter,
   HostBinding,
   Input,
+  OnChanges,
   OnDestroy,
   Output,
   Renderer2,
@@ -38,7 +39,7 @@ export type MdcDrawerType = 'persistent' | 'permanent' | 'temporary';
     EventRegistry,
   ]
 })
-export class MdcDrawer implements AfterViewInit, OnDestroy {
+export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
   private _drawer = 'permanent';
   private _fixedAdjustElement: ElementRef;
 
@@ -87,13 +88,15 @@ export class MdcDrawer implements AfterViewInit, OnDestroy {
     addBodyClass: (className: string) => {
       if (isBrowser()) {
         this.renderer.addClass(this.fixedAdjustElement
-          ? (this.fixedAdjustElement.nativeElement ? this.fixedAdjustElement.nativeElement : this.fixedAdjustElement) : document.body, className);
+          ? (this.fixedAdjustElement.nativeElement ? this.fixedAdjustElement.nativeElement
+            : this.fixedAdjustElement) : document.body, className);
       }
     },
     removeBodyClass: (className: string) => {
       if (isBrowser()) {
         this.renderer.removeClass(this.fixedAdjustElement
-          ? (this.fixedAdjustElement.nativeElement ? this.fixedAdjustElement.nativeElement : this.fixedAdjustElement) : document.body, className);
+          ? (this.fixedAdjustElement.nativeElement ? this.fixedAdjustElement.nativeElement
+            : this.fixedAdjustElement) : document.body, className);
       }
     },
     eventTargetHasClass: (target: HTMLElement, className: string) => {
@@ -273,12 +276,8 @@ export class MdcDrawer implements AfterViewInit, OnDestroy {
     }
   }
 
-  getDrawerWidth(): number | undefined {
-    if (this._foundation) {
-      return this._mdcAdapter.getDrawerWidth();
-    } else {
-      this._getHostElement().offsetWidth;
-    }
+  getDrawerWidth(): any {
+    return this._foundation ? this._mdcAdapter.getDrawerWidth() : this._getHostElement().offsetWidth;
   }
 
   isRtl(): boolean {
