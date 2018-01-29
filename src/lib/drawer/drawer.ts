@@ -201,7 +201,7 @@ export class MdcDrawer implements OnChanges, OnDestroy {
           if (this.closeOnClick) {
             this._foundation.close();
           }
-        })
+        });
       }
     }
 
