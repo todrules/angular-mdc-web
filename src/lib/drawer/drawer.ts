@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -39,11 +38,12 @@ export type MdcDrawerType = 'persistent' | 'permanent' | 'temporary';
     EventRegistry,
   ]
 })
-export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
+export class MdcDrawer implements OnChanges, OnDestroy {
   private _drawer = 'permanent';
   private _fixedAdjustElement: ElementRef;
 
   @Input() fixed: boolean = false;
+  @Input() direction: 'ltr' | 'rtl' = 'ltr';
 
   @Input()
   get drawer(): string { return this._drawer; }
@@ -190,6 +190,19 @@ export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
 
     if (drawer) {
       this._initDrawerFoundation(drawer.currentValue);
+      if (drawer.currentValue === 'temporary') {
+        this._registry.listen('click', () => {
+          if (this.closeOnClick) {
+            this._foundation.close();
+          }
+        }, this.drawerElement.nativeElement);
+      } else if (drawer.previousValue === 'temporary') {
+        this._registry.unlisten('click', () => {
+          if (this.closeOnClick) {
+            this._foundation.close();
+          }
+        })
+      }
     }
 
     if (fixedAdjustElement && !this.fixed) {
@@ -198,16 +211,6 @@ export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
       } else {
         this.renderer.removeStyle(this._getHostElement(), 'position');
       }
-    }
-  }
-
-  ngAfterViewInit(): void {
-    if (this.isDrawerTemporary()) {
-      this._registry.listen('click', () => {
-        if (this.closeOnClick) {
-          this._foundation.close();
-        }
-      }, this.drawerElement.nativeElement);
     }
   }
 
@@ -245,7 +248,7 @@ export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   isDrawerPersistent(): boolean {
-    return this._drawer === 'temporary';
+    return this._drawer === 'persistent';
   }
 
   private _removeDrawerModifierClass(): void {
@@ -281,6 +284,6 @@ export class MdcDrawer implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   isRtl(): boolean {
-    return getComputedStyle(this._getHostElement()).getPropertyValue('direction') === 'rtl';
+    return this.direction === 'rtl';
   }
 }

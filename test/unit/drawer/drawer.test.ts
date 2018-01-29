@@ -49,7 +49,8 @@ describe('MdcDrawer', () => {
       testInstance.close();
       fixture.detectChanges();
       expect(testInstance.isOpen()).toBe(false);
-      expect(testInstance.isDrawerPersistent()).toBe(true);
+      expect(testInstance.isDrawerPermanent()).toBe(false);
+      expect(testInstance.isDrawerPersistent()).toBe(false);
     });
 
     it('#should be open', () => {
@@ -59,6 +60,8 @@ describe('MdcDrawer', () => {
       testInstance.open();
       fixture.detectChanges();
       expect(testInstance.isOpen()).toBe(true);
+      expect(testInstance.isDrawerPermanent()).toBe(false);
+      expect(testInstance.isDrawerTemporary()).toBe(false);
     });
 
     it('#should be open', () => {
@@ -67,12 +70,28 @@ describe('MdcDrawer', () => {
       expect(testInstance.isOpen()).toBe(true);
     });
 
+    it('#should be closed after opened twice in a row', () => {
+      testComponent.drawer = 'persistent';
+      fixture.detectChanges();
+
+      testInstance.open();
+      testInstance.open();
+      fixture.detectChanges();
+      expect(testInstance.isOpen()).toBe(false);
+    });
+
     it('#should provide drawer width', () => {
       expect(testInstance.getDrawerWidth()).toBeGreaterThanOrEqual(0);
     });
 
-    it('#should be rtl direction', () => {
+    it('#should not be rtl direction', () => {
       expect(testInstance.isRtl()).toBe(false);
+    });
+
+    it('#should be rtl direction', () => {
+      testComponent.direction = 'rtl';
+      fixture.detectChanges();
+      expect(testInstance.isRtl()).toBe(true);
     });
 
     it('#should be closed after click', () => {
@@ -100,7 +119,8 @@ describe('MdcDrawer', () => {
 
 @Component({
   template: `
-  <mdc-drawer [drawer]="drawer" [fixed]="isFixed" [closeOnClick]="isCloseOnClick" [fixedAdjustElement]="testcontent">
+  <mdc-drawer [drawer]="drawer" [fixed]="isFixed" [closeOnClick]="isCloseOnClick"
+   [fixedAdjustElement]="testcontent" [direction]="direction">
     <mdc-drawer-spacer>Angular MDC</mdc-drawer-spacer>
     <mdc-drawer-header>
       <mdc-drawer-header-content>
@@ -143,6 +163,7 @@ describe('MdcDrawer', () => {
 })
 class SimpleTest {
   drawer: string = 'permanent';
+  direction: string = 'ltr';
   isFixed: boolean = true;
   isCloseOnClick: boolean = true;
 }
